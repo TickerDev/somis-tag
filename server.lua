@@ -1,7 +1,7 @@
 local guildId = config.guild_id
 local botToken = "Bot " .. config.token
 
-function getplayerinfo(discordId, cb)
+local function GetPlayerDiscord(discordId, cb)
     local url = ("https://discord.com/api/v10/guilds/%s/members/%s"):format(guildId, discordId)
 
     PerformHttpRequest(url, function(code, res)
@@ -17,18 +17,27 @@ function getplayerinfo(discordId, cb)
     })
 end
 
-exports("isusingmytag", function(src, cb)
-    local discordId = (GetPlayerIdentifierByType(src, "discord") or ""):sub(9)
-    if discordId == "" then return cb(nil) end
+exports("IsUserUsingTag", function(src)
+    local p = promise.new()
 
-    getplayerinfo(discordId, function(m)
-        if not m or not m.user or not m.user.clan or not m.user.clan.tag then
-            return cb(nil)
+    local discordId = (GetPlayerIdentifierByType(src, "discord") or ""):sub(9)
+    if discordId == "" then
+        p:resolve(nil)
+        return Citizen.Await(p)
+    end
+
+    GetPlayerDiscord(discordId, function(m)
+        if not m or not m.user or not m.user.primary_guild or not m.user.primary_guild.tag then
+            p:resolve(nil)
+            return
         end
-        if guildId == m.user.clan.identity_guild_id then
-        cb(true)
+
+        if guildId == m.user.primary_guild.identity_guild_id then
+            p:resolve(true)
         else
-        cb(false)
+            p:resolve(false)
         end
     end)
+
+    return Citizen.Await(p)
 end)
