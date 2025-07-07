@@ -17,7 +17,7 @@ local function GetPlayerDiscord(discordId, cb)
     })
 end
 
-exports("IsUserUsingTag", function(src)
+exports("IsPlayerUsingTag", function(src)
     local p = promise.new()
 
     local discordId = (GetPlayerIdentifierByType(src, "discord") or ""):sub(9)
